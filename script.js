@@ -117,7 +117,7 @@ function time(){
     if(d.getSeconds() < 10){
         seconds = "0" + d.getSeconds();
     }
-    // concatenate a string with all the date info...
+
     let dateInfo = months[d.getMonth()] + " " + day + suffix + ", " + d.getFullYear() + ", " + hours + ":" + minutes + ":" + seconds;
     return dateInfo;
 }

@@ -1,5 +1,5 @@
 // global variables
-let level, answer, score;
+let level, answer, score, userName;
 const levelArr = document.getElementsByName("level");
 const scoreArr = [];
 
@@ -9,19 +9,30 @@ date.textContent = time();
 // add event listeners
 playBtn.addEventListener("click", play);
 guessBtn.addEventListener("click", makeGuess);
+giveUp.addEventListener("click", giveUpFunc);
+nameBtn.addEventListener("click", enterName);
+
+function enterName(){
+    let nameInput = document.getElementById("name").value;
+    userName = nameInput.charAt(0).toUpperCase();
+    for(let i = 1; i < nameInput.length; i++){
+        userName += nameInput.charAt(i).toLowerCase()
+    }
+}
 
 function play(){
     score = 0; // sets score to 0 every new game
     playBtn.disabled = true;
     guessBtn.disabled = false;
     guess.disabled = false;
+    giveUp.disabled = false;
     for(let i = 0; i < levelArr.length; i++){
         if(levelArr[i].checked){
             level = levelArr[i].value;
         }
         levelArr[i].disabled = true;
     }
-    msg.innerHTML = "Guess a number from 1-" + level;
+    msg.innerHTML = "Ready " + userName + "? Guess a number from 1-" + level;
     answer = Math.floor(Math.random()*level)+1;
     guess.placeholder = answer;
 }
@@ -42,17 +53,42 @@ function makeGuess(){
     }
 
     score++; // valid guess add 1 to score
-    
-    if(userGuess < answer){
-        msg.textContent = userGuess + " is too low, try again.";
+    let scoreAssessment;
+    if(score == 1){
+        scoreAssessment = " That was amazing " + userName + "!"
     }
-    else if(userGuess > answer){
-        msg.textContent = userGuess + " is too high, try again.";
+    else if(level == 10 && score <=3 || level == 100 && score <= 20){
+        scoreAssessment = " Pretty good " + userName + "! Want to see if you can do better?"
+    }
+    else if(level == 3 || level == 10 && score <= 6 || level == 100 && score <= 50){
+        scoreAssessment = " That was okay " + userName + ", but I know you can do better."
     }
     else{
-        msg.textContent = answer + " is correct! It took you " + score + triesString + " Press play to play again.";
+        scoreAssessment = " Did you even try " + userName + "?"
+    }
+    
+    if(userGuess < answer){
+        msg.textContent = userGuess + " is too low, try again " + userName + ".";
+    }
+    else if(userGuess > answer){
+        msg.textContent = userGuess + " is too high, try again " + userName + ".";
+    }
+    else{
+        msg.textContent = answer + " is correct! It took you " + score + triesString + scoreAssessment + " Press play to play again.";
         updateScore();
         reset();
+        return;
+    }
+
+    let absDiff = Math.abs(answer - userGuess);
+    if(absDiff <= Math.ceil(level/20)){
+        msg.textContent += " You are burning hot!";
+    }
+    else if(absDiff <= Math.ceil(level/4)){
+        msg.textContent += " You are warm.";
+    }
+    else{
+        msg.textContent += " You are very cold.";
     }
 }
 
@@ -60,6 +96,7 @@ function reset(){
     playBtn.disabled = false;
     guessBtn.disabled = true;
     guess.disabled = true;
+    giveUp.disabled = true;
     guess.value = "";
     guess.placeholder = "";
     for(let i = 0; i < levelArr.length; i++){
@@ -86,11 +123,32 @@ function updateScore(){
     avgScore.textContent = "Average Score: " + avg.toFixed(2);
 }
 
+function giveUpFunc(){
+    score = level;
+    msg.innerHTML = "Don't worry " + userName + ", I'm sure you'll get it next time.";
+    reset();
+}
+
 function time(){
     let d = new Date();
-    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-    day = d.getDate();
 
+    let month = d.getMonth()
+    switch(month){
+        case 0: month = "January"; break;
+        case 1: month = "February"; break;
+        case 2: month = "March"; break;
+        case 3: month = "April"; break;
+        case 4: month = "May"; break;
+        case 5: month = "June"; break;
+        case 6: month = "July"; break;
+        case 7: month = "August"; break;
+        case 8: month = "September"; break;
+        case 9: month = "October"; break;
+        case 10: month = "November"; break;
+        case 11: month = "December"; break;
+    }
+
+    day = d.getDate();
     let suffix;
     if(day >= 4 && day <= 20 || day >= 24 && day <= 30){
         suffix = "th";
@@ -106,18 +164,23 @@ function time(){
     }
 
     let hours = d.getHours();
+    ampm = "AM"
+    if(hours > 12){
+        hours -= 12;
+        ampm = "PM"
+    }
     if(hours < 10){
-        hours = "0" + d.getHours();
+        hours = "0" + hours;
     }
     let minutes = d.getMinutes();
     if(minutes < 10){
-        minutes = "0" + d.getMinutes();
+        minutes = "0" + minutes;
     }
     let seconds = d.getSeconds();
     if(seconds < 10){
-        seconds = "0" + d.getSeconds();
+        seconds = "0" + seconds;
     }
 
-    let dateInfo = months[d.getMonth()] + " " + day + suffix + ", " + d.getFullYear() + ", " + hours + ":" + minutes + ":" + seconds;
+    let dateInfo = month + " " + day + suffix + ", " + d.getFullYear() + ", " + hours + ":" + minutes + ":" + seconds + " " + ampm;
     return dateInfo;
 }

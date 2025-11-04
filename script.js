@@ -106,15 +106,15 @@ function time(){
     }
 
     let hours = d.getHours();
-    if(d.getHours() < 10){
+    if(hours < 10){
         hours = "0" + d.getHours();
     }
     let minutes = d.getMinutes();
-    if(d.getMinutes() < 10){
+    if(minutes < 10){
         minutes = "0" + d.getMinutes();
     }
     let seconds = d.getSeconds();
-    if(d.getSeconds() < 10){
+    if(seconds < 10){
         seconds = "0" + d.getSeconds();
     }
 

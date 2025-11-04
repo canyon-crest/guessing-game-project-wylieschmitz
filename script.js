@@ -88,6 +88,36 @@ function updateScore(){
 
 function time(){
     let d = new Date();
+    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    day = d.getDate();
+
+    let suffix;
+    if(day >= 4 && day <= 20 || day >= 24 && day <= 30){
+        suffix = "th";
+    }
+    else if(day%10 == 1){
+        suffix = "st";
+    }
+    else if(day%10 == 2){
+        suffix = "nd";
+    }
+    else{
+        suffix = "rd";
+    }
+
+    let hours = d.getHours();
+    if(d.getHours() < 10){
+        hours = "0" + d.getHours();
+    }
+    let minutes = d.getMinutes();
+    if(d.getMinutes() < 10){
+        minutes = "0" + d.getMinutes();
+    }
+    let seconds = d.getSeconds();
+    if(d.getSeconds() < 10){
+        seconds = "0" + d.getSeconds();
+    }
     // concatenate a string with all the date info...
-    return d;
+    let dateInfo = months[d.getMonth()] + " " + day + suffix + ", " + d.getFullYear() + ", " + hours + ":" + minutes + ":" + seconds;
+    return dateInfo;
 }

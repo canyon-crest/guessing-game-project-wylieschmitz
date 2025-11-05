@@ -10,9 +10,9 @@ setInterval(time, 1000);
 
 
 // add event listeners
-playBtn.addEventListener("click", play);
+playBtn.addEventListener("click", startCountdown);
 guessBtn.addEventListener("click", makeGuess);
-giveUp.addEventListener("click", giveUpFunc);
+giveUpBtn.addEventListener("click", giveUpFunc);
 nameBtn.addEventListener("click", enterName);
 
 function enterName(){
@@ -25,12 +25,12 @@ function enterName(){
 
 function play(){
     score = 0; // sets score to 0 every new game
-    gameStartTime = new Date().getTime();
+    startMs = new Date().getTime();
 
     playBtn.disabled = true;
     guessBtn.disabled = false;
     guess.disabled = false;
-    giveUp.disabled = false;
+    giveUpBtn.disabled = false;
 
     for(let i = 0; i < levelArr.length; i++){
         if(levelArr[i].checked){
@@ -44,7 +44,7 @@ function play(){
     guess.placeholder = answer;
 
     gameTimeInterval = setInterval(function(){
-        let timeElapsed = new Date().getTime() - gameStartTime;
+        let timeElapsed = new Date().getTime() - startMs;
         currentGameTime.textContent = "Time: " + timeElapsed/1000 + "s";
     })
 }
@@ -88,6 +88,7 @@ function makeGuess(){
     else{
         msg.textContent = answer + " is correct! It took you " + score + triesString + scoreAssessment + " Press play to play again.";
         updateScore();
+        updateTimers(new Date().getTime());
         reset();
         return;
     }
@@ -108,7 +109,7 @@ function reset(){
     playBtn.disabled = false;
     guessBtn.disabled = true;
     guess.disabled = true;
-    giveUp.disabled = true;
+    giveUpBtn.disabled = true;
     guess.value = "";
     guess.placeholder = "";
     clearInterval(gameTimeInterval);
@@ -118,11 +119,6 @@ function reset(){
 }
 
 function updateScore(){
-    gameTime = new Date().getTime() - gameStartTime;
-    timeArr.push(gameTime);
-    timeArr.sort((a,b)=>a-b);
-    bestTime.textContent = "Fastest game: " + timeArr[0]/1000 + "s";
-
     let scoreSum = 0;
     let lb = document.getElementsByName("leaderboard");
     scoreArr.push(score);
@@ -132,23 +128,68 @@ function updateScore(){
 
     for(let i = 0; i < scoreArr.length; i++){
         scoreSum += scoreArr[i];
-        timeSum += timeArr[i];
         if(i < lb.length){
             lb[i].textContent = scoreArr[i];
         }
     }
 
-    let avgTimeValue = timeSum/timeArr.length;;
-    avgTime.textContent = "Average time: " + (avgTimeValue/1000).toFixed(3) + "s";
-
     let avgScoreValue = scoreSum/scoreArr.length;
     avgScore.textContent = "Average Score: " + avgScoreValue.toFixed(2);
+}
+
+function updateTimers(endMs){
+    clearInterval(gameTimeInterval);
+
+    let gameTime = (endMs - startMs)/1000;
+    timeArr.push(gameTime);
+    timeArr.sort((a,b)=>a-b);
+
+    bestTime.textContent = "Fastest game: " + timeArr[0] + "s";
+
+    let timeSum = 0;
+    for(let i = 0; i < timeArr.length; i++){
+        timeSum += timeArr[i];
+    }
+
+    let avgTimeValue = timeSum/timeArr.length;
+    avgTime.textContent = "Average Time: " + avgTimeValue.toFixed(3) + "s";
 }
 
 function giveUpFunc(){
     score = level;
     msg.innerHTML = "Don't worry " + userName + ", I'm sure you'll get it next time.";
     reset();
+}
+
+function startCountdown(){
+    // prevent starting if already disabled
+    if(playBtn.disabled) return;
+    playBtn.disabled = true; // temporarily disable
+    const countdownEl = document.getElementById('countdown');
+
+    let count = 3;
+    countdownEl.textContent = count;
+    countdownEl.classList.add('show','pop');
+
+    const tick = setInterval(()=>{
+        count--;
+        if(count > 0){
+            // update number and retrigger pop animation
+            countdownEl.textContent = count;
+            countdownEl.classList.remove('pop');
+            // force reflow to restart animation
+            void countdownEl.offsetWidth;
+            countdownEl.classList.add('pop');
+        } else {
+            clearInterval(tick);
+            // hide countdown then start the game
+            countdownEl.classList.remove('pop');
+            countdownEl.classList.remove('show');
+            countdownEl.textContent = '';
+            // call existing play logic
+            play();
+        }
+    }, 1000);
 }
 
 function time(){

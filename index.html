@@ -2,9 +2,41 @@
 <html>
   <head>
     <title>JavaScript Number Guessing Game</title>
+    <style>
+      /* Countdown styling */
+      #countdown {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 6rem;
+        font-weight: 800;
+        color: #ff4d4d;
+        pointer-events: none;
+        opacity: 0;
+        z-index: 1000;
+        transition: opacity 0.12s ease;
+        text-align: center;
+      }
+
+      #countdown.show {
+        opacity: 1;
+      }
+
+      @keyframes pop {
+        0% { transform: translate(-50%, -50%) scale(0.2); opacity: 0; }
+        60% { transform: translate(-50%, -50%) scale(1.15); opacity: 1; }
+        100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+      }
+
+      #countdown.pop {
+        animation: pop 550ms cubic-bezier(.2,.8,.2,1);
+      }
+    </style>
     <script src="script.js" defer></script>
   </head>
   <body>
+    <div id="countdown" aria-hidden="true"></div>
     <p id="date"></p>
 
     <h3>Please enter your name:</h3>
@@ -22,7 +54,7 @@
     <p id="currentGameTime"></p>
     <input type="text" id="guess">
     <button id="guessBtn" disabled>Guess</button>
-    <button id="giveUp" disabled>Give Up</button>
+    <button id="giveUpBtn" disabled>Give Up</button>
 
     <h3>Stats</h3>
     <p id="wins">Total wins: 0</p>

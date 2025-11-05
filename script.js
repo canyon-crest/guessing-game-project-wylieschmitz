@@ -1,10 +1,13 @@
 // global variables
-let level, answer, score, userName;
+let level, answer, score, userName, gameStartTime, gameTimeInterval;
 const levelArr = document.getElementsByName("level");
 const scoreArr = [];
+const timeArr = [];
 
-// display time
-date.textContent = time();
+// display time: run once immediately, then update every second
+time();
+setInterval(time, 1000);
+
 
 // add event listeners
 playBtn.addEventListener("click", play);
@@ -22,19 +25,28 @@ function enterName(){
 
 function play(){
     score = 0; // sets score to 0 every new game
+    gameStartTime = new Date().getTime();
+
     playBtn.disabled = true;
     guessBtn.disabled = false;
     guess.disabled = false;
     giveUp.disabled = false;
+
     for(let i = 0; i < levelArr.length; i++){
         if(levelArr[i].checked){
             level = levelArr[i].value;
         }
         levelArr[i].disabled = true;
     }
+
     msg.innerHTML = "Ready " + userName + "? Guess a number from 1-" + level;
     answer = Math.floor(Math.random()*level)+1;
     guess.placeholder = answer;
+
+    gameTimeInterval = setInterval(function(){
+        let timeElapsed = new Date().getTime() - gameStartTime;
+        currentGameTime.textContent = "Time: " + timeElapsed/1000 + "s";
+    })
 }
 
 function makeGuess(){
@@ -99,13 +111,19 @@ function reset(){
     giveUp.disabled = true;
     guess.value = "";
     guess.placeholder = "";
+    clearInterval(gameTimeInterval);
     for(let i = 0; i < levelArr.length; i++){
         levelArr[i].disabled = false;
     }
 }
 
 function updateScore(){
-    let sum = 0;
+    gameTime = new Date().getTime() - gameStartTime;
+    timeArr.push(gameTime);
+    timeArr.sort((a,b)=>a-b);
+    bestTime.textContent = "Fastest game: " + timeArr[0]/1000 + "s";
+
+    let scoreSum = 0;
     let lb = document.getElementsByName("leaderboard");
     scoreArr.push(score);
     scoreArr.sort((a,b)=>a-b); // sort increasing order
@@ -113,14 +131,18 @@ function updateScore(){
     wins.textContent = "Total wins: " + scoreArr.length;
 
     for(let i = 0; i < scoreArr.length; i++){
-        sum += scoreArr[i];
+        scoreSum += scoreArr[i];
+        timeSum += timeArr[i];
         if(i < lb.length){
             lb[i].textContent = scoreArr[i];
         }
     }
 
-    let avg = sum/scoreArr.length;
-    avgScore.textContent = "Average Score: " + avg.toFixed(2);
+    let avgTimeValue = timeSum/timeArr.length;;
+    avgTime.textContent = "Average time: " + (avgTimeValue/1000).toFixed(3) + "s";
+
+    let avgScoreValue = scoreSum/scoreArr.length;
+    avgScore.textContent = "Average Score: " + avgScoreValue.toFixed(2);
 }
 
 function giveUpFunc(){
@@ -181,6 +203,5 @@ function time(){
         seconds = "0" + seconds;
     }
 
-    let dateInfo = month + " " + day + suffix + ", " + d.getFullYear() + ", " + hours + ":" + minutes + ":" + seconds + " " + ampm;
-    return dateInfo;
+    date.textContent = month + " " + day + suffix + ", " + d.getFullYear() + ", " + hours + ":" + minutes + ":" + seconds + " " + ampm;
 }

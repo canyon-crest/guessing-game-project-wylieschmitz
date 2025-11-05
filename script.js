@@ -1,6 +1,11 @@
 // global variables
-let level, answer, score, userName, gameStartTime, gameTimeInterval;
+let level, answer, score, userName, startMs, gameTimeInterval;
 const levelArr = document.getElementsByName("level");
+const modeArr = document.getElementsByName("mode");
+let gameMode;
+let timeAttackTimer;
+let timeAttackRemaining;
+const TIME_ATTACK_DURATION = 15; // seconds
 const scoreArr = [];
 const timeArr = [];
 
@@ -14,6 +19,46 @@ playBtn.addEventListener("click", startCountdown);
 guessBtn.addEventListener("click", makeGuess);
 giveUpBtn.addEventListener("click", giveUpFunc);
 nameBtn.addEventListener("click", enterName);
+
+// Keyboard shortcuts
+// Enter: submit name (if name field focused) or make a guess
+// P: start play (starts countdown)
+// Escape: give up (only when give up is enabled)
+document.addEventListener('keydown', function(e){
+    const active = document.activeElement;
+    const tag = active && active.tagName ? active.tagName.toLowerCase() : '';
+
+    if(e.key === 'Enter'){
+        // If the user is typing their name and presses Enter, submit the name
+        if(tag === 'input' && active.id === 'name'){
+            enterName();
+            return;
+        }
+        // Otherwise, attempt to make a guess if guessing is enabled
+        if(typeof guessBtn !== 'undefined' && !guessBtn.disabled){
+            makeGuess();
+        }
+    }
+
+    if(e.key === 'p' || e.key === 'P'){
+            // Avoid triggering while typing in text inputs/textareas, but allow
+            // radio buttons and other non-typing inputs so clicking a radio
+            // doesn't block the shortcut.
+            const activeType = (active && active.type) ? active.type.toLowerCase() : '';
+            const isTypingField = tag === 'textarea' || active.isContentEditable || (
+                tag === 'input' && ['text','password','search','tel','url','email','number'].includes(activeType)
+            );
+            if(!isTypingField && !playBtn.disabled){
+            startCountdown();
+        }
+    }
+
+    if(e.key === 'Escape' && !guessBtn.disabled){
+        if(typeof giveUpBtn !== 'undefined' && !giveUpBtn.disabled){
+            giveUpFunc();
+        }
+    }
+});
 
 function enterName(){
     let nameInput = document.getElementById("name").value;
@@ -41,12 +86,39 @@ function play(){
 
     msg.innerHTML = "Ready " + userName + "? Guess a number from 1-" + level;
     answer = Math.floor(Math.random()*level)+1;
-    guess.placeholder = answer;
 
-    gameTimeInterval = setInterval(function(){
-        let timeElapsed = new Date().getTime() - startMs;
-        currentGameTime.textContent = "Time: " + timeElapsed/1000 + "s";
-    })
+    // determine selected mode (normal or time-attack)
+    gameMode = 'normal';
+    for(let i = 0; i < modeArr.length; i++){
+        if(modeArr[i].checked){
+            gameMode = modeArr[i].value;
+        }
+    }
+
+    // start timers depending on mode
+    if(gameMode === 'time-attack'){
+        // time-attack: countdown from TIME_ATTACK_DURATION using precise milliseconds
+        currentGameTime.textContent = "Time left: " + TIME_ATTACK_DURATION.toFixed(2) + "s";
+        timeAttackTimer = setInterval(()=>{
+            const elapsed = (new Date().getTime() - startMs) / 1000;
+            const remaining = Math.max(0, TIME_ATTACK_DURATION - elapsed);
+            currentGameTime.textContent = "Time left: " + remaining.toFixed(3) + "s";
+            if(remaining <= 0){
+                clearInterval(timeAttackTimer);
+                // behave like give up when time expires
+                score = level;
+                msg.innerHTML = "Time's up! Don't worry " + userName + ", I'm sure you'll get it next time.";
+                reset();
+                return;
+            }
+        }, 50);
+    } else {
+        // normal mode: show elapsed time with millisecond precision
+        gameTimeInterval = setInterval(function(){
+            let timeElapsed = new Date().getTime() - startMs;
+            currentGameTime.textContent = "Time: " + (timeElapsed/1000).toFixed(2) + "s";
+        }, 50);
+    }
 }
 
 function makeGuess(){
@@ -111,8 +183,9 @@ function reset(){
     guess.disabled = true;
     giveUpBtn.disabled = true;
     guess.value = "";
-    guess.placeholder = "";
     clearInterval(gameTimeInterval);
+    clearInterval(timeAttackTimer);
+    currentGameTime.textContent = "";
     for(let i = 0; i < levelArr.length; i++){
         levelArr[i].disabled = false;
     }
@@ -139,12 +212,13 @@ function updateScore(){
 
 function updateTimers(endMs){
     clearInterval(gameTimeInterval);
+    clearInterval(timeAttackTimer);
 
     let gameTime = (endMs - startMs)/1000;
     timeArr.push(gameTime);
     timeArr.sort((a,b)=>a-b);
 
-    bestTime.textContent = "Fastest game: " + timeArr[0] + "s";
+    fastest.textContent = "Fastest game: " + timeArr[0].toFixed(3) + "s";
 
     let timeSum = 0;
     for(let i = 0; i < timeArr.length; i++){

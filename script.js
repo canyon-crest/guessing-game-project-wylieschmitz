@@ -102,7 +102,7 @@ function play(){
         timeAttackTimer = setInterval(()=>{
             const elapsed = (new Date().getTime() - startMs) / 1000;
             const remaining = Math.max(0, TIME_ATTACK_DURATION - elapsed);
-            currentGameTime.textContent = "Time left: " + remaining.toFixed(3) + "s";
+            currentGameTime.textContent = "Time left: " + remaining.toFixed(2) + "s";
             if(remaining <= 0){
                 clearInterval(timeAttackTimer);
                 // behave like give up when time expires
@@ -185,7 +185,6 @@ function reset(){
     guess.value = "";
     clearInterval(gameTimeInterval);
     clearInterval(timeAttackTimer);
-    currentGameTime.textContent = "";
     for(let i = 0; i < levelArr.length; i++){
         levelArr[i].disabled = false;
     }
